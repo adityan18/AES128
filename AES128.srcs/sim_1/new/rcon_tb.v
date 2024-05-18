@@ -3,9 +3,9 @@
 // Company:
 // Engineer:
 //
-// Create Date: 05/09/2024 08:44:25 PM
+// Create Date: 05/18/2024 01:05:11 PM
 // Design Name:
-// Module Name: rot_tb
+// Module Name: rcon_tb
 // Project Name:
 // Target Devices:
 // Tool Versions:
@@ -20,19 +20,24 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module rot_tb(
+module rcon_tb(
 
     );
 
-    reg clk;
-    wire flag;
-
-    rot dut(clk, flag);
+    reg [7:0] round;
+    wire [7:0] rcon;
+    rcon dut (round, rcon);
 
     initial begin
-        clk = 0;
-        #5;
-        clk = 1;
-        #10;
+        round = 8'h1; #1;
+        round = 8'h2; #1;
+        round = 8'h3; #1;
+        round = 8'h4; #1;
+        round = 8'h5; #1;
+        round = 8'h6; #1;
+        round = 8'h7; #1;
+        round = 8'h8; #1;
+        round = 8'h9; #1;
+        round = 8'hA; #1;
     end
 endmodule

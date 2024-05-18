@@ -29,9 +29,9 @@ module top_tb ();
 	reg  rst2 ;
 	wire flag2;
 
-	encrypt dut1 (clk,rst1,flag1);
+	top dut1 (clk,rst1,flag1);
 
-	decrypt dut2 (clk,rst2,flag2);
+	// decrypt dut2 (clk,rst2,flag2);
 
 	initial begin
 		clk = 0;
@@ -55,10 +55,10 @@ module top_tb ();
 		end
 	end
 
-	always @ (flag2) begin
-		if(flag2) begin
-			#10;
-			$finish;
-		end
-	end
+	// always @ (flag2) begin
+	// 	if(flag2) begin
+	// 		#10;
+	// 		$finish;
+	// 	end
+	// end
 endmodule

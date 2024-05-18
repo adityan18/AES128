@@ -1,10 +1,31 @@
 `timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company:
+// Engineer:
+//
+// Create Date: 05/09/2024 08:42:40 PM
+// Design Name:
+// Module Name: galios2
+// Project Name:
+// Target Devices:
+// Tool Versions:
+// Description:
+//
+// Dependencies:
+//
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+//
+//////////////////////////////////////////////////////////////////////////////////
 
-module galois (
-	input  [7:0] a, b,
-	input        rst,
-	output [7:0] p
-);
+
+module galois2(
+    input [7:0] a,
+    input [7:0] b,
+    input rst,
+    output [7:0] p
+    );
 
 	reg     [7:0] temp  = 0;
 	reg           dummy    ;
