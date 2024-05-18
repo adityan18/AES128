@@ -26,8 +26,8 @@ module key_generator(
     input [127:0] key, /* Input Key */
     output reg keyReady, /* Is Key Ready ? */
 
-    input [2:0] round, /* Round Number */
-    output [127:0] roundKey
+    input [7:0] round, /* Round Number */
+    output reg [127:0] roundKey /* Round Key */
     );
 
     /**** Parameters ****/
@@ -139,13 +139,28 @@ module key_generator(
         STATE <= MAP;
         keyWordIndex <= 8'b0;
         keyReady <= 8'b0;
-        disableBlock = 1'b0;
+        disableBlock <= 1'b0;
         localRound <= 8'b0;
+        roundKey <= 128'h0;
 
         for (i = 0; i < 4; i = i + 1) begin
             for (j = 0; j < 44; j = j + 1) begin
                 finalKeys[i][j] <= 8'b0;
             end
+        end
+    end
+
+    always @(round) begin
+        if (keyReady && (round <= 8'hA) && (round > 8'h0)) begin
+            roundKey = {
+                finalKeys[0][(round) * 4], finalKeys[0][(round) * 4 + 1], finalKeys[0][(round) * 4 + 2], finalKeys[0][(round) * 4 + 3],
+                finalKeys[1][(round) * 4], finalKeys[1][(round) * 4 + 1], finalKeys[1][(round) * 4 + 2], finalKeys[1][(round) * 4 + 3],
+                finalKeys[2][(round) * 4], finalKeys[2][(round) * 4 + 1], finalKeys[2][(round) * 4 + 2], finalKeys[2][(round) * 4 + 3],
+                finalKeys[3][(round) * 4], finalKeys[3][(round) * 4 + 1], finalKeys[3][(round) * 4 + 2], finalKeys[3][(round) * 4 + 3]
+            };
+        end
+        else begin
+            roundKey = roundKey;
         end
     end
 
