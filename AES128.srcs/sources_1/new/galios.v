@@ -5,7 +5,7 @@
 //
 // Create Date: 05/09/2024 08:42:40 PM
 // Design Name:
-// Module Name: galios2
+// Module Name: galios
 // Project Name:
 // Target Devices:
 // Tool Versions:
@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module galois2(
+module galois(
     input [7:0] a,
     input [7:0] b,
     input rst,

@@ -24,26 +24,30 @@ module key_generator(
     input clk, /* Clock */
     input en, /* Enable */
     input [127:0] key, /* Input Key */
-    output reg keyReady, /* Is Key Ready ? */
+    output keyReady, /* Is Key Ready ? */
 
     input [7:0] round, /* Round Number */
-    output reg [127:0] roundKey /* Round Key */
+    output [127:0] roundKey /* Round Key */
     );
 
     /**** Parameters ****/
-    parameter IDLE = 0;
+    parameter IDLE      = 0;
     parameter MAP       = 1;
     parameter ROT_AND_SUB_BYTE_GET_RCON  = 2;
-    parameter XOR1       = 3;
-    parameter XOR2       = 4;
+    parameter XOR1      = 3;
+    parameter XOR2      = 4;
 
     /**** Locals ****/
     reg [7:0] finalKeys [0:3][0:43];
     reg [7:0] keyWordIndex = 8'h0;
+    reg localKeyReady = 1'b0;
 
     reg [7:0] localRound = 8'h0;
+    reg [127:0] localRoundKey = 128'h0;
+
     wire [7:0] localRcon;
     wire [7:0] localSubByte [0:3];
+    wire clk2;
 
     reg [2:0] STATE = IDLE;
 
@@ -54,7 +58,7 @@ module key_generator(
 
     integer i, j;
 
-    reg disableBlock;
+    reg disableBlock = 0;
 
     /**** Instantiatons ****/
     sbox sbox1 (.inByte(inByte1), .subByte(localSubByte[0]));
@@ -69,7 +73,20 @@ module key_generator(
         if(en & !disableBlock) begin
             case (STATE)
                 IDLE: begin
-                    {keyReady, disableBlock} <= (keyWordIndex == 44) ? 2'b11 : 8'b00;
+                    /* Reset Local Registers when module is enabled */
+                    keyWordIndex <= 8'b0;
+                    localKeyReady <= 8'b0;
+                    disableBlock <= 1'b0;
+                    localRound <= 8'b0;
+                    localRoundKey <= 128'h0;
+
+                    for (i = 0; i < 4; i = i + 1) begin
+                        for (j = 0; j < 44; j = j + 1) begin
+                            finalKeys[i][j] <= 8'b0;
+                        end
+                    end
+
+                    STATE <= MAP;
                 end
                 MAP: begin
                     finalKeys[0][0] <= key[127:120];
@@ -105,6 +122,7 @@ module key_generator(
                     STATE <= XOR1;
                 end
                 XOR1: begin
+                    /* To get W(0) */
                     finalKeys[0][keyWordIndex] <= finalKeys[0][keyWordIndex - 8'h4] ^ localSubByte[0] ^ localRcon;
                     finalKeys[1][keyWordIndex] <= finalKeys[1][keyWordIndex - 8'h4] ^ localSubByte[1] ^ 8'h0;
                     finalKeys[2][keyWordIndex] <= finalKeys[2][keyWordIndex - 8'h4] ^ localSubByte[2] ^ 8'h0;
@@ -124,6 +142,7 @@ module key_generator(
 
     always @(STATE) begin
         if (STATE == XOR2) begin
+            /* To get W(1, 2, 3) */
             for (i = 0; i < 3; i = i + 1) begin
                 finalKeys[0][keyWordIndex] = finalKeys[0][keyWordIndex - 8'h4] ^ finalKeys[0][keyWordIndex - 8'h1];
                 finalKeys[1][keyWordIndex] = finalKeys[1][keyWordIndex - 8'h4] ^ finalKeys[1][keyWordIndex - 8'h1];
@@ -132,27 +151,14 @@ module key_generator(
                 keyWordIndex = keyWordIndex + 1;
             end
             STATE = (keyWordIndex == 44) ? IDLE : ROT_AND_SUB_BYTE_GET_RCON;
-        end
-    end
-
-    always @(posedge en) begin
-        STATE <= MAP;
-        keyWordIndex <= 8'b0;
-        keyReady <= 8'b0;
-        disableBlock <= 1'b0;
-        localRound <= 8'b0;
-        roundKey <= 128'h0;
-
-        for (i = 0; i < 4; i = i + 1) begin
-            for (j = 0; j < 44; j = j + 1) begin
-                finalKeys[i][j] <= 8'b0;
-            end
+            {localKeyReady, disableBlock} = (keyWordIndex == 44) ? 2'b11 : 2'b00;
         end
     end
 
     always @(round) begin
-        if (keyReady && (round <= 8'hA) && (round > 8'h0)) begin
-            roundKey = {
+        /* Return Round Key when Input is Round number */
+        if (localKeyReady && (round <= 8'hA) && (round > 8'h0)) begin
+            localRoundKey = {
                 finalKeys[0][(round) * 4], finalKeys[0][(round) * 4 + 1], finalKeys[0][(round) * 4 + 2], finalKeys[0][(round) * 4 + 3],
                 finalKeys[1][(round) * 4], finalKeys[1][(round) * 4 + 1], finalKeys[1][(round) * 4 + 2], finalKeys[1][(round) * 4 + 3],
                 finalKeys[2][(round) * 4], finalKeys[2][(round) * 4 + 1], finalKeys[2][(round) * 4 + 2], finalKeys[2][(round) * 4 + 3],
@@ -160,8 +166,12 @@ module key_generator(
             };
         end
         else begin
-            roundKey = roundKey;
+            localRoundKey = localRoundKey;
         end
     end
+
+    /**** Assignments ****/
+    assign keyReady = localKeyReady;
+    assign roundKey = localRoundKey;
 
 endmodule

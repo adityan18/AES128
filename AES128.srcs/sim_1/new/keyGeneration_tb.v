@@ -40,12 +40,14 @@ module keyGeneration_tb(
     end
 
     initial begin
-        en = 1;
-        round = 2'd1;
+        en = 0;
         key = {8'h2b, 8'h28, 8'hab, 8'h09,
         8'h7e, 8'hae, 8'hf7, 8'hcf,
         8'h15, 8'hd2, 8'h15, 8'h4f,
         8'h16, 8'ha6, 8'h88, 8'h3c};
+        # 10;
+        en = 1;
+        round = 2'd1;
         # 50;
         en = 0;
         # 10;
